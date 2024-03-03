@@ -1,0 +1,11 @@
+server:
+  port: 8082
+
+spring:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umbrella-database
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create
