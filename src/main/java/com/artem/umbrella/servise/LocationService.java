@@ -35,11 +35,8 @@ public class LocationService {
         }
         var location = Location.builder()
                 .name(locationCreateDto.name())
+                .humans(new HashSet<>())
                 .build();
-        return locationRepository.save(location);
-    }
-
-    public Location create(Location location) {
         return locationRepository.save(location);
     }
 

@@ -32,10 +32,13 @@ public class HumanService {
         var human = Human.builder()
                 .name(humanCreateDto.name())
                 .healthStatus(humanCreateDto.healthStatus())
+                .location(location)
                 .build();
-        humanRepository.saveAndFlush(human);
-        location.getHumans().add(human);
-        return human;
+        return humanRepository.save(human);
+    }
+
+    public void create(Human human) {
+        humanRepository.save(human);
     }
 
     public Human update(HumanUpdateDto humanUpdateDto) {
@@ -43,6 +46,7 @@ public class HumanService {
         var location = locationService.getById(humanUpdateDto.locationId());
         human.setName(humanUpdateDto.name());
         human.setHealthStatus(humanUpdateDto.healthStatus());
+        human.setLocation(location);
         return humanRepository.save(human);
     }
 

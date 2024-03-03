@@ -1,15 +1,13 @@
 package com.artem.umbrella.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @NoArgsConstructor
@@ -23,6 +21,6 @@ public class Location {
 
     private String name;
 
-    @OneToMany(mappedBy = "location")
-    private Set<Human> humans = new HashSet<>();
+    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Human> humans;
 }
