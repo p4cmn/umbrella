@@ -5,6 +5,9 @@ import com.artem.umbrella.dto.VirusInfectDto;
 import com.artem.umbrella.dto.VirusUpdateDto;
 import com.artem.umbrella.entity.Virus;
 import com.artem.umbrella.enumeration.HealthStatus;
+import com.artem.umbrella.exception.EntityExistsException;
+import com.artem.umbrella.exception.EntityNotFoundException;
+import com.artem.umbrella.exception.ImmunityException;
 import com.artem.umbrella.repository.VirusRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +25,7 @@ public class VirusService {
 
     public Virus getById(Long id) {
         return virusRepository.findById(id)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public List<Virus> getAll() {
@@ -31,7 +34,7 @@ public class VirusService {
 
     public Virus create(VirusCreateDto virusCreateDto) {
         if (virusRepository.existsByName(virusCreateDto.name())) {
-            throw new RuntimeException();
+            throw new EntityExistsException();
         }
         var virus = Virus.builder()
                 .name(virusCreateDto.name())
@@ -48,7 +51,7 @@ public class VirusService {
         var infected = virus.getInfectiousnessPercentage() > 50;
 
         if (!infected) {
-            throw new RuntimeException();
+            throw new ImmunityException();
         }
         human.getViruses().add(virus);
         human.setHealthStatus(HealthStatus.INFECTED);

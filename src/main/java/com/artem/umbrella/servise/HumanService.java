@@ -3,6 +3,7 @@ package com.artem.umbrella.servise;
 import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.HumanUpdateDto;
 import com.artem.umbrella.entity.Human;
+import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.repository.HumanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class HumanService {
 
     public Human getById(Long id) {
         return humanRepository.findById(id)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public List<Human> getAll() {

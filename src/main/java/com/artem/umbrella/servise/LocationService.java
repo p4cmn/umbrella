@@ -3,6 +3,8 @@ package com.artem.umbrella.servise;
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
 import com.artem.umbrella.entity.Location;
+import com.artem.umbrella.exception.EntityExistsException;
+import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,7 @@ public class LocationService {
 
     public Location getById(Long id) {
         return locationRepository.findById(id)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public List<Location> getAll() {
@@ -27,7 +29,7 @@ public class LocationService {
 
     public Location create(LocationCreateDto locationCreateDto) {
         if (locationRepository.existsByName(locationCreateDto.name())) {
-            throw new RuntimeException();
+            throw new EntityExistsException();
         }
         var location = Location.builder()
                 .name(locationCreateDto.name())
