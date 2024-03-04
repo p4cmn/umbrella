@@ -9,6 +9,5 @@ public record HumanUpdateDto(
         Long id,
         String name,
         HealthStatus healthStatus,
-        Set<Virus> viruses,
         Long locationId) {
 }

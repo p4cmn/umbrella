@@ -27,7 +27,7 @@ public class Human {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "human_virus",
             joinColumns = @JoinColumn(name = "human_id"),
             inverseJoinColumns = @JoinColumn(name = "virus_id"))

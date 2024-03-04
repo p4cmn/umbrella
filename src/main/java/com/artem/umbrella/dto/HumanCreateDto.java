@@ -8,7 +8,6 @@ import java.util.Set;
 public record HumanCreateDto(
         String name,
         HealthStatus healthStatus,
-
         Set<Virus> viruses,
         Long locationId) {
 }

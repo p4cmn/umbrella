@@ -33,6 +33,7 @@ public class HumanService {
                 .name(humanCreateDto.name())
                 .healthStatus(humanCreateDto.healthStatus())
                 .location(location)
+                .viruses(new HashSet<>())
                 .build();
         return humanRepository.save(human);
     }

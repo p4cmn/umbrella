@@ -29,7 +29,7 @@ public class LocationService {
         return locationRepository.findAll();
     }
 
-    public Location create(LocationCreateDto locationCreateDto) {
+    public Location create  (LocationCreateDto locationCreateDto) {
         if (locationRepository.existsByName(locationCreateDto.name())) {
             throw new RuntimeException();
         }

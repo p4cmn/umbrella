@@ -19,8 +19,9 @@ public class Virus {
     private Long id;
 
     private String name;
+
     private int infectiousnessPercentage;
 
-    @ManyToMany(mappedBy = "viruses")
+    @ManyToMany(mappedBy = "viruses", cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
     private Set<Human> humans;
 }
