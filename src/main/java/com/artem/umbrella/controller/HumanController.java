@@ -4,7 +4,6 @@ import com.artem.umbrella.converter.DtoConverter;
 import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.HumanDto;
 import com.artem.umbrella.dto.HumanUpdateDto;
-import com.artem.umbrella.entity.Human;
 import com.artem.umbrella.servise.HumanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

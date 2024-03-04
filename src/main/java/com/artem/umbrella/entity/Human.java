@@ -4,7 +4,7 @@ import com.artem.umbrella.enumeration.HealthStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,9 +27,9 @@ public class Human {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany
     @JoinTable(name = "human_virus",
             joinColumns = @JoinColumn(name = "human_id"),
             inverseJoinColumns = @JoinColumn(name = "virus_id"))
-    private Set<Virus> viruses;
+    private List<Virus> viruses;
 }

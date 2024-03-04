@@ -6,10 +6,11 @@ import com.artem.umbrella.dto.VirusUpdateDto;
 import com.artem.umbrella.entity.Virus;
 import com.artem.umbrella.enumeration.HealthStatus;
 import com.artem.umbrella.repository.VirusRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,7 +36,7 @@ public class VirusService {
         var virus = Virus.builder()
                 .name(virusCreateDto.name())
                 .infectiousnessPercentage(virusCreateDto.infectiousnessPercentage())
-                .humans(new HashSet<>())
+                .humans(new ArrayList<>())
                 .build();
         return virusRepository.save(virus);
     }
@@ -61,8 +62,11 @@ public class VirusService {
         return virusRepository.save(virus);
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        getById(id);
+        var virus = getById(id);
+        virus.getHumans().forEach(human -> human.getViruses().remove(virus));
+        humanService.createAll(virus.getHumans());
         virusRepository.deleteById(id);
     }
 }

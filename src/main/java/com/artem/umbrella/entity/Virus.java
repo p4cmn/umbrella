@@ -3,7 +3,7 @@ package com.artem.umbrella.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,5 +23,5 @@ public class Virus {
     private int infectiousnessPercentage;
 
     @ManyToMany(mappedBy = "viruses", cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
-    private Set<Human> humans;
+    private List<Human> humans;
 }

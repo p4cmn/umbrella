@@ -5,7 +5,6 @@ import com.artem.umbrella.dto.VirusCreateDto;
 import com.artem.umbrella.dto.VirusDto;
 import com.artem.umbrella.dto.VirusInfectDto;
 import com.artem.umbrella.dto.VirusUpdateDto;
-import com.artem.umbrella.entity.Virus;
 import com.artem.umbrella.servise.VirusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

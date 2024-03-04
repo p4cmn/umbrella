@@ -1,15 +1,14 @@
 package com.artem.umbrella.servise;
 
-import com.artem.umbrella.dto.*;
+import com.artem.umbrella.dto.HumanCreateDto;
+import com.artem.umbrella.dto.HumanUpdateDto;
 import com.artem.umbrella.entity.Human;
-import com.artem.umbrella.entity.Virus;
 import com.artem.umbrella.repository.HumanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,13 +32,17 @@ public class HumanService {
                 .name(humanCreateDto.name())
                 .healthStatus(humanCreateDto.healthStatus())
                 .location(location)
-                .viruses(new HashSet<>())
+                .viruses(new ArrayList<>())
                 .build();
         return humanRepository.save(human);
     }
 
     public void create(Human human) {
         humanRepository.save(human);
+    }
+
+    public void createAll(List<Human> humans) {
+        humanRepository.saveAll(humans);
     }
 
     public Human update(HumanUpdateDto humanUpdateDto) {

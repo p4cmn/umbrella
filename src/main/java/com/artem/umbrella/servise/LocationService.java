@@ -2,16 +2,12 @@ package com.artem.umbrella.servise;
 
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
-import com.artem.umbrella.dto.VirusCreateDto;
-import com.artem.umbrella.dto.VirusUpdateDto;
-import com.artem.umbrella.entity.Human;
 import com.artem.umbrella.entity.Location;
-import com.artem.umbrella.entity.Virus;
 import com.artem.umbrella.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,13 +25,13 @@ public class LocationService {
         return locationRepository.findAll();
     }
 
-    public Location create  (LocationCreateDto locationCreateDto) {
+    public Location create(LocationCreateDto locationCreateDto) {
         if (locationRepository.existsByName(locationCreateDto.name())) {
             throw new RuntimeException();
         }
         var location = Location.builder()
                 .name(locationCreateDto.name())
-                .humans(new HashSet<>())
+                .humans(new ArrayList<>())
                 .build();
         return locationRepository.save(location);
     }

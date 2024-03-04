@@ -3,8 +3,7 @@ package com.artem.umbrella.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,5 +21,5 @@ public class Location {
     private String name;
 
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Human> humans;
+    private List<Human> humans;
 }

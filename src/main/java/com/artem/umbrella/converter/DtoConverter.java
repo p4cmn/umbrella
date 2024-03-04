@@ -9,7 +9,6 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DtoConverter {
 
-
     public HumanDto toHumanDto(Human human) {
         var viruses = human.getViruses().stream().map(Virus::getName).toList();
         return HumanDto.builder()
@@ -50,6 +49,7 @@ public class DtoConverter {
                 .location(human.getLocation().getName())
                 .build();
     }
+
     private LocationHumanDto toLocationHumanDto(Human human) {
         var viruses = human.getViruses().stream()
                 .map(Virus::getName).toList();

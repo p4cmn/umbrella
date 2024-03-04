@@ -4,7 +4,6 @@ import com.artem.umbrella.converter.DtoConverter;
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
-import com.artem.umbrella.entity.Location;
 import com.artem.umbrella.servise.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
