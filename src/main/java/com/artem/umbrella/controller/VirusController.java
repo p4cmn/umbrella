@@ -1,10 +1,7 @@
 package com.artem.umbrella.controller;
 
 import com.artem.umbrella.converter.DtoConverter;
-import com.artem.umbrella.dto.VirusCreateDto;
-import com.artem.umbrella.dto.VirusDto;
-import com.artem.umbrella.dto.VirusInfectDto;
-import com.artem.umbrella.dto.VirusUpdateDto;
+import com.artem.umbrella.dto.*;
 import com.artem.umbrella.servise.VirusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,6 +26,12 @@ public class VirusController {
     public List<VirusDto> getAll() {
         var viruses = virusService.getAll();
         return viruses.stream().map(DtoConverter::toVirusDto).toList();
+    }
+
+    @GetMapping("/location/{locationId}")
+    public List<VirusLocationDto> getAllByLocationId(@PathVariable Long locationId) {
+        var viruses = virusService.getAllByLocationId(locationId);
+        return viruses.stream().map(DtoConverter::toVirusLocationDto).toList();
     }
 
     @PostMapping

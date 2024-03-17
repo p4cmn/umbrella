@@ -41,6 +41,13 @@ public class DtoConverter {
                 .build();
     }
 
+    public VirusLocationDto toVirusLocationDto(Virus virus) {
+        return VirusLocationDto.builder()
+                .id(virus.getId())
+                .name(virus.getName())
+                .build();
+    }
+
     private VirusHumanDto toVirusHumanDto(Human human) {
         return VirusHumanDto.builder()
                 .id(human.getId())

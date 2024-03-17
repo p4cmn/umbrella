@@ -22,6 +22,7 @@ public class VirusService {
 
     private final VirusRepository virusRepository;
     private final HumanService humanService;
+    private final LocationService locationService;
 
     public Virus getById(Long id) {
         return virusRepository.findById(id)
@@ -30,6 +31,11 @@ public class VirusService {
 
     public List<Virus> getAll() {
         return virusRepository.findAll();
+    }
+
+    public List<Virus> getAllByLocationId(Long locationId) {
+        locationService.getById(locationId);
+        return virusRepository.findAllByLocationId(locationId);
     }
 
     public Virus create(VirusCreateDto virusCreateDto) {
@@ -47,9 +53,7 @@ public class VirusService {
     public void infect(VirusInfectDto virusInfectDto) {
         var human = humanService.getById(virusInfectDto.humanId());
         var virus = getById(virusInfectDto.virusId());
-
         var infected = virus.getInfectiousnessPercentage() > 50;
-
         if (!infected) {
             throw new ImmunityException();
         }
