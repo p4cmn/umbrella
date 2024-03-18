@@ -24,6 +24,11 @@ public class CacheManager {
         cache.remove(key);
     }
 
+    public void update(Class<?> clazz, Long id, Object value) {
+        remove(clazz, id);
+        put(clazz, id, value);
+    }
+
     private String generateKey(Class<?> clazz, Long id) {
         return clazz.getSimpleName() + "-" + id;
     }

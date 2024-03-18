@@ -43,15 +43,16 @@ public class LocationService {
                 .name(locationCreateDto.name())
                 .humans(new ArrayList<>())
                 .build();
-        return locationRepository.save(location);
+        locationRepository.saveAndFlush(location);
+        cacheManager.put(Location.class, location.getId(), location);
+        return location;
     }
 
     public Location update(LocationUpdateDto locationUpdateDto) {
         var location = getById(locationUpdateDto.id());
         location.setName(locationUpdateDto.name());
         var updatedLocation = locationRepository.save(location);
-        cacheManager.remove(Location.class, updatedLocation.getId());
-        cacheManager.put(Location.class, updatedLocation.getId(), updatedLocation);
+        cacheManager.update(Location.class, location.getId(), location);
         return updatedLocation;
     }
 
