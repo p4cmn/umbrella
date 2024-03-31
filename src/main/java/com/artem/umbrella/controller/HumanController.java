@@ -5,12 +5,17 @@ import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.HumanDto;
 import com.artem.umbrella.dto.HumanUpdateDto;
 import com.artem.umbrella.servise.HumanService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
+@Validated
 @RestController
 @RequestMapping("/humans")
 @RequiredArgsConstructor
@@ -19,7 +24,7 @@ public class HumanController {
     private final HumanService humanService;
 
     @GetMapping("/{id}")
-    public HumanDto getById(@PathVariable Long id) {
+    public HumanDto getById(@PathVariable final Long id) {
         var human = humanService.getById(id);
         return DtoConverter.toHumanDto(human);
     }
@@ -32,19 +37,19 @@ public class HumanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public HumanDto create(@RequestBody HumanCreateDto humanCreateDto) {
+    public HumanDto create(@Valid @RequestBody final HumanCreateDto humanCreateDto) {
         var human = humanService.create(humanCreateDto);
         return DtoConverter.toHumanDto(human);
     }
 
     @PutMapping
-    public HumanDto update(@RequestBody HumanUpdateDto humanUpdateDto) {
+    public HumanDto update(@Valid @RequestBody final HumanUpdateDto humanUpdateDto) {
         var human = humanService.update(humanUpdateDto);
         return DtoConverter.toHumanDto(human);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id) {
+    public void deleteById(@PathVariable final Long id) {
         humanService.deleteById(id);
     }
 }

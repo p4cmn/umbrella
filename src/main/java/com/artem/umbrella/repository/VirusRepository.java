@@ -12,9 +12,9 @@ public interface VirusRepository extends JpaRepository<Virus, Long> {
 
     boolean existsByName(String name);
 
-    @Query(value = "SELECT v.* FROM virus v " +
-            "JOIN human_virus hv ON v.id = hv.virus_id " +
-            "JOIN human h ON hv.human_id = h.id " +
-            "WHERE h.location_id = :locationId", nativeQuery = true)
+    @Query(value = "SELECT v.* FROM virus v "
+            + "JOIN human_virus hv ON v.id = hv.virus_id "
+            + "JOIN human h ON hv.human_id = h.id "
+            + "WHERE h.location_id = :locationId", nativeQuery = true)
     List<Virus> findAllByLocationId(Long locationId);
 }

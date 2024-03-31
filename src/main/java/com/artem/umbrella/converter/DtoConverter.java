@@ -9,7 +9,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DtoConverter {
 
-    public HumanDto toHumanDto(Human human) {
+    public HumanDto toHumanDto(final Human human) {
         var viruses = human.getViruses().stream().map(Virus::getName).toList();
         return HumanDto.builder()
                 .id(human.getId())
@@ -20,7 +20,7 @@ public class DtoConverter {
                 .build();
     }
 
-    public LocationDto toLocationDto(Location location) {
+    public LocationDto toLocationDto(final Location location) {
         var locationHumansDto = location.getHumans().stream()
                 .map(DtoConverter::toLocationHumanDto).toList();
         return LocationDto.builder()
@@ -30,7 +30,7 @@ public class DtoConverter {
                 .build();
     }
 
-    public VirusDto toVirusDto(Virus virus) {
+    public VirusDto toVirusDto(final Virus virus) {
         var virusHumansDto = virus.getHumans().stream()
                 .map(DtoConverter::toVirusHumanDto).toList();
         return VirusDto.builder()
@@ -41,14 +41,14 @@ public class DtoConverter {
                 .build();
     }
 
-    public VirusLocationDto toVirusLocationDto(Virus virus) {
+    public VirusLocationDto toVirusLocationDto(final Virus virus) {
         return VirusLocationDto.builder()
                 .id(virus.getId())
                 .name(virus.getName())
                 .build();
     }
 
-    private VirusHumanDto toVirusHumanDto(Human human) {
+    private VirusHumanDto toVirusHumanDto(final Human human) {
         return VirusHumanDto.builder()
                 .id(human.getId())
                 .name(human.getName())
@@ -57,7 +57,7 @@ public class DtoConverter {
                 .build();
     }
 
-    private LocationHumanDto toLocationHumanDto(Human human) {
+    private LocationHumanDto toLocationHumanDto(final Human human) {
         var viruses = human.getViruses().stream()
                 .map(Virus::getName).toList();
         return LocationHumanDto.builder()

@@ -20,7 +20,7 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final CacheManager cacheManager;
 
-    public Location getById(Long id) {
+    public Location getById(final Long id) {
         var cachedLocation = cacheManager.get(Location.class, id);
         if (cachedLocation != null) {
             return (Location) cachedLocation;
@@ -35,7 +35,7 @@ public class LocationService {
         return locationRepository.findAll();
     }
 
-    public Location create(LocationCreateDto locationCreateDto) {
+    public Location create(final LocationCreateDto locationCreateDto) {
         if (locationRepository.existsByName(locationCreateDto.name())) {
             throw new EntityExistsException();
         }
@@ -48,7 +48,7 @@ public class LocationService {
         return location;
     }
 
-    public Location update(LocationUpdateDto locationUpdateDto) {
+    public Location update(final LocationUpdateDto locationUpdateDto) {
         var location = getById(locationUpdateDto.id());
         location.setName(locationUpdateDto.name());
         var updatedLocation = locationRepository.save(location);
@@ -56,7 +56,7 @@ public class LocationService {
         return updatedLocation;
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(final Long id) {
         getById(id);
         cacheManager.remove(Location.class, id);
         locationRepository.deleteById(id);

@@ -5,12 +5,15 @@ import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
 import com.artem.umbrella.servise.LocationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/locations")
@@ -19,7 +22,7 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping("/{id}")
-    public LocationDto getById(@PathVariable Long id) {
+    public LocationDto getById(@PathVariable final Long id) {
         var location = locationService.getById(id);
         return DtoConverter.toLocationDto(location);
     }
@@ -32,19 +35,19 @@ public class LocationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LocationDto create(@RequestBody LocationCreateDto locationCreateDto) {
+    public LocationDto create(@Valid @RequestBody final LocationCreateDto locationCreateDto) {
         var location = locationService.create(locationCreateDto);
         return DtoConverter.toLocationDto(location);
     }
 
     @PutMapping
-    public LocationDto update(@RequestBody LocationUpdateDto locationUpdateDto) {
+    public LocationDto update(@Valid @RequestBody final LocationUpdateDto locationUpdateDto) {
         var location = locationService.update(locationUpdateDto);
         return DtoConverter.toLocationDto(location);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id) {
+    public void deleteById(@PathVariable final Long id) {
         locationService.deleteById(id);
     }
 }

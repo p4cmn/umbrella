@@ -11,11 +11,13 @@ import com.artem.umbrella.exception.ImmunityException;
 import com.artem.umbrella.repository.VirusRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VirusService {
@@ -23,8 +25,9 @@ public class VirusService {
     private final VirusRepository virusRepository;
     private final HumanService humanService;
     private final LocationService locationService;
+    private static final int INFECTIOUSNESS_THRESHOLD = 50;
 
-    public Virus getById(Long id) {
+    public Virus getById(final Long id) {
         return virusRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
     }
@@ -33,12 +36,12 @@ public class VirusService {
         return virusRepository.findAll();
     }
 
-    public List<Virus> getAllByLocationId(Long locationId) {
+    public List<Virus> getAllByLocationId(final Long locationId) {
         locationService.getById(locationId);
         return virusRepository.findAllByLocationId(locationId);
     }
 
-    public Virus create(VirusCreateDto virusCreateDto) {
+    public Virus create(final VirusCreateDto virusCreateDto) {
         if (virusRepository.existsByName(virusCreateDto.name())) {
             throw new EntityExistsException();
         }
@@ -50,10 +53,10 @@ public class VirusService {
         return virusRepository.save(virus);
     }
 
-    public void infect(VirusInfectDto virusInfectDto) {
+    public void infect(final VirusInfectDto virusInfectDto) {
         var human = humanService.getById(virusInfectDto.humanId());
         var virus = getById(virusInfectDto.virusId());
-        var infected = virus.getInfectiousnessPercentage() > 50;
+        var infected = virus.getInfectiousnessPercentage() > INFECTIOUSNESS_THRESHOLD;
         if (!infected) {
             throw new ImmunityException();
         }
@@ -62,7 +65,7 @@ public class VirusService {
         humanService.create(human);
     }
 
-    public Virus update(VirusUpdateDto virusUpdateDto) {
+    public Virus update(final VirusUpdateDto virusUpdateDto) {
         var virus = getById(virusUpdateDto.id());
         virus.setName(virusUpdateDto.name());
         virus.setInfectiousnessPercentage(virusUpdateDto.infectiousnessPercentage());
@@ -70,7 +73,7 @@ public class VirusService {
     }
 
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(final Long id) {
         var virus = getById(id);
         virus.getHumans().forEach(human -> human.getViruses().remove(virus));
         humanService.createAll(virus.getHumans());

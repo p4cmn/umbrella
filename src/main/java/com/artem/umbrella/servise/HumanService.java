@@ -21,7 +21,7 @@ public class HumanService {
     private final LocationService locationService;
     private final CacheManager cacheManager;
 
-    public Human getById(Long id) {
+    public Human getById(final Long id) {
         return humanRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
     }
@@ -30,7 +30,7 @@ public class HumanService {
         return humanRepository.findAll();
     }
 
-    public Human create(HumanCreateDto humanCreateDto) {
+    public Human create(final HumanCreateDto humanCreateDto) {
         var location = locationService.getById(humanCreateDto.locationId());
         var human = Human.builder()
                 .name(humanCreateDto.name())
@@ -43,17 +43,17 @@ public class HumanService {
         return human;
     }
 
-    public void create(Human human) {
+    public void create(final Human human) {
         humanRepository.save(human);
         cacheManager.remove(Location.class, human.getLocation().getId());
     }
 
-    public void createAll(List<Human> humans) {
+    public void createAll(final List<Human> humans) {
         humanRepository.saveAll(humans);
         humans.forEach(human -> cacheManager.remove(Location.class, human.getLocation().getId()));
     }
 
-    public Human update(HumanUpdateDto humanUpdateDto) {
+    public Human update(final HumanUpdateDto humanUpdateDto) {
         var human = getById(humanUpdateDto.id());
         var locationId = human.getLocation().getId();
         var location = locationService.getById(humanUpdateDto.locationId());
@@ -66,7 +66,7 @@ public class HumanService {
         return human;
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(final Long id) {
         var human = getById(id);
         humanRepository.deleteById(id);
         cacheManager.remove(Location.class, human.getLocation().getId());
