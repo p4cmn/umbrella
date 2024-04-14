@@ -11,6 +11,7 @@ import java.util.List;
 public interface VirusRepository extends JpaRepository<Virus, Long> {
 
     boolean existsByName(String name);
+    boolean existsByNameIn(List<String> names);
 
     @Query(value = "SELECT v.* FROM virus v "
             + "JOIN human_virus hv ON v.id = hv.virus_id "

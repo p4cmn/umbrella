@@ -7,7 +7,7 @@ public class LoggingPointcuts {
     public void allMethodsFromControllers() {
     }
 
-    @Pointcut("execution(* com.artem.umbrella.servise.*.*(..))")
+    @Pointcut("execution(* com.artem.umbrella.service.*.*(..))")
     public void allMethodsFromServices() {
     }
 }

@@ -1,4 +1,4 @@
-package com.artem.umbrella.servise;
+package com.artem.umbrella.service;
 
 import com.artem.umbrella.dto.VirusCreateDto;
 import com.artem.umbrella.dto.VirusInfectDto;
@@ -8,6 +8,7 @@ import com.artem.umbrella.enumeration.HealthStatus;
 import com.artem.umbrella.exception.EntityExistsException;
 import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.exception.ImmunityException;
+import com.artem.umbrella.repository.LocationRepository;
 import com.artem.umbrella.repository.VirusRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class VirusService {
     private final HumanService humanService;
     private final LocationService locationService;
     private static final int INFECTIOUSNESS_THRESHOLD = 50;
+    private final LocationRepository locationRepository;
 
     public Virus getById(final Long id) {
         return virusRepository.findById(id)
@@ -53,6 +55,19 @@ public class VirusService {
         return virusRepository.save(virus);
     }
 
+    public List<Virus> createSeveral(final List<VirusCreateDto> virusCreateDtoList) {
+        validateVirusesDoNotExist(virusCreateDtoList);
+        var viruses = virusCreateDtoList.stream()
+                .map(virusCreateDto -> Virus.builder()
+                        .name(virusCreateDto.name())
+                        .infectiousnessPercentage(virusCreateDto.infectiousnessPercentage())
+                        .humans(new ArrayList<>())
+                        .build())
+                .toList();
+        virusRepository.saveAll(viruses);
+        return viruses;
+    }
+
     public void infect(final VirusInfectDto virusInfectDto) {
         var human = humanService.getById(virusInfectDto.humanId());
         var virus = getById(virusInfectDto.virusId());
@@ -78,5 +93,13 @@ public class VirusService {
         virus.getHumans().forEach(human -> human.getViruses().remove(virus));
         humanService.createAll(virus.getHumans());
         virusRepository.deleteById(id);
+    }
+
+    private void validateVirusesDoNotExist(List<VirusCreateDto> virusCreateDtoList) {
+        if (virusRepository.existsByNameIn(virusCreateDtoList.stream()
+                .map(VirusCreateDto::name)
+                .toList())) {
+            throw new EntityExistsException();
+        }
     }
 }

@@ -4,7 +4,7 @@ import com.artem.umbrella.converter.DtoConverter;
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
-import com.artem.umbrella.servise.LocationService;
+import com.artem.umbrella.service.LocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,6 +30,13 @@ public class LocationController {
     @GetMapping
     public List<LocationDto> getAll() {
         var locations = locationService.getAll();
+        return locations.stream().map(DtoConverter::toLocationDto).toList();
+    }
+
+    @PostMapping("/several")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<LocationDto> createSeveral(@Valid @RequestBody final List<LocationCreateDto> locationCreateDtoList) {
+        var locations = locationService.createSeveral(locationCreateDtoList);
         return locations.stream().map(DtoConverter::toLocationDto).toList();
     }
 

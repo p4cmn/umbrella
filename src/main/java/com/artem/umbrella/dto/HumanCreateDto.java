@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Pattern;
 
 public record HumanCreateDto(
 
-        @NotNull(message = "Name must not be null")
         @NotBlank(message = "Name must not be blank")
         @Pattern(regexp = "^[A-Z][a-zA-Z]*$",
                 message = "Name must start with an uppercase letter and contain only letters")

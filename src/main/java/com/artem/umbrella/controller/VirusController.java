@@ -2,7 +2,7 @@ package com.artem.umbrella.controller;
 
 import com.artem.umbrella.converter.DtoConverter;
 import com.artem.umbrella.dto.*;
-import com.artem.umbrella.servise.VirusService;
+import com.artem.umbrella.service.VirusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,6 +42,13 @@ public class VirusController {
     public VirusDto create(@Valid @RequestBody final VirusCreateDto virusCreateDto) {
         var virus = virusService.create(virusCreateDto);
         return DtoConverter.toVirusDto(virus);
+    }
+
+    @PostMapping("/several")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<VirusDto> createSeveral(@Valid @RequestBody final List<VirusCreateDto> virusCreateDtoList) {
+        var viruses = virusService.createSeveral(virusCreateDtoList);
+        return viruses.stream().map(DtoConverter::toVirusDto).toList();
     }
 
     @PostMapping("/infect")

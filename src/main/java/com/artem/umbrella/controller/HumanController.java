@@ -4,7 +4,7 @@ import com.artem.umbrella.converter.DtoConverter;
 import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.HumanDto;
 import com.artem.umbrella.dto.HumanUpdateDto;
-import com.artem.umbrella.servise.HumanService;
+import com.artem.umbrella.service.HumanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +40,13 @@ public class HumanController {
     public HumanDto create(@Valid @RequestBody final HumanCreateDto humanCreateDto) {
         var human = humanService.create(humanCreateDto);
         return DtoConverter.toHumanDto(human);
+    }
+
+    @PostMapping("/several")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<HumanDto> createSeveral(@RequestBody final List<@Valid HumanCreateDto> humanCreateDtoList) {
+        var humans = humanService.createSeveral(humanCreateDtoList);
+        return humans.stream().map(DtoConverter::toHumanDto).toList();
     }
 
     @PutMapping

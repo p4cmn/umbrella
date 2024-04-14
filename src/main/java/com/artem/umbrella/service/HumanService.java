@@ -1,4 +1,4 @@
-package com.artem.umbrella.servise;
+package com.artem.umbrella.service;
 
 import com.artem.umbrella.cache.CacheManager;
 import com.artem.umbrella.dto.HumanCreateDto;
@@ -31,11 +31,10 @@ public class HumanService {
     }
 
     public Human create(final HumanCreateDto humanCreateDto) {
-        var location = locationService.getById(humanCreateDto.locationId());
         var human = Human.builder()
                 .name(humanCreateDto.name())
                 .healthStatus(humanCreateDto.healthStatus())
-                .location(location)
+                .location(locationService.getById(humanCreateDto.locationId()))
                 .viruses(new ArrayList<>())
                 .build();
         humanRepository.saveAndFlush(human);
@@ -51,6 +50,19 @@ public class HumanService {
     public void createAll(final List<Human> humans) {
         humanRepository.saveAll(humans);
         humans.forEach(human -> cacheManager.remove(Location.class, human.getLocation().getId()));
+    }
+
+    public List<Human> createSeveral(final List<HumanCreateDto> humanCreateDtoList) {
+        var humans = humanCreateDtoList.stream()
+                .map(humanCreateDto -> Human.builder()
+                        .name(humanCreateDto.name())
+                        .healthStatus(humanCreateDto.healthStatus())
+                        .location(locationService.getById(humanCreateDto.locationId()))
+                        .viruses(new ArrayList<>())
+                        .build()).toList();
+        humanRepository.saveAllAndFlush(humans);
+        humans.forEach(human -> cacheManager.remove(Location.class, human.getLocation().getId()));
+        return humans;
     }
 
     public Human update(final HumanUpdateDto humanUpdateDto) {

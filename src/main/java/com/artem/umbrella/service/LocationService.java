@@ -1,4 +1,4 @@
-package com.artem.umbrella.servise;
+package com.artem.umbrella.service;
 
 import com.artem.umbrella.cache.CacheManager;
 import com.artem.umbrella.dto.LocationCreateDto;
@@ -48,6 +48,19 @@ public class LocationService {
         return location;
     }
 
+    public List<Location> createSeveral(final List<LocationCreateDto> locationCreateDtoList) {
+        validateLocationsDoNotExist(locationCreateDtoList);
+        var locations = locationCreateDtoList.stream()
+                .map(locationCreateDto -> Location.builder()
+                        .name(locationCreateDto.name())
+                        .humans(new ArrayList<>())
+                        .build())
+                .toList();
+        locationRepository.saveAllAndFlush(locations);
+        locations.forEach(location -> cacheManager.put(Location.class, location.getId(), location));
+        return locations;
+    }
+
     public Location update(final LocationUpdateDto locationUpdateDto) {
         var location = getById(locationUpdateDto.id());
         location.setName(locationUpdateDto.name());
@@ -62,4 +75,11 @@ public class LocationService {
         locationRepository.deleteById(id);
     }
 
+    private void validateLocationsDoNotExist(List<LocationCreateDto> locationCreateDtoList) {
+        if (locationRepository.existsByNameIn(locationCreateDtoList.stream()
+                .map(LocationCreateDto::name)
+                .toList())) {
+            throw new EntityExistsException();
+        }
+    }
 }
