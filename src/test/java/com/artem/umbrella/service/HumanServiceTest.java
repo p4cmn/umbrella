@@ -9,17 +9,19 @@ import com.artem.umbrella.enumeration.HealthStatus;
 import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.repository.HumanRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class HumanServiceTest {
 
     @Mock
@@ -35,131 +37,248 @@ class HumanServiceTest {
     private HumanService humanService;
 
     @Test
-    public void getById_HumanExists() {
-        var id = 1L;
-        var human = new Human();
-        Mockito.when(humanRepository.findById(id)).thenReturn(Optional.of(human));
-        var result = humanService.getById(id);
-        assertEquals(human, result);
-        Mockito.verify(humanRepository, Mockito.times(1)).findById(id);
+    public void getById_shouldReturnEntity_whenEntityExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        when(humanRepository.findById(human.getId())).thenReturn(Optional.of(human));
+
+        assertEquals(human, humanService.getById(human.getId()));
     }
 
     @Test
-    public void getById_HumanNotFound() {
-        var id = 1L;
-        Mockito.when(humanRepository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> {
-            humanService.getById(id);
-        });
-        Mockito.verify(humanRepository, Mockito.times(1)).findById(id);
+    public void getById_shouldThrowEntityNotFoundException_whenEntityDoesNotExist() {
+        when(humanRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> humanService.getById(1L));
     }
 
     @Test
-    public void getAll() {
-        var humans = new ArrayList<Human>();
-        Mockito.when(humanRepository.findAll()).thenReturn(humans);
-        var result = humanService.getAll();
-        assertEquals(humans, result);
-        Mockito.verify(humanRepository, Mockito.times(1)).findAll();
+    public void getAll_shouldReturnEntities_whenEntitiesExist() {
+        var location1 = Location.builder()
+                .id(1L)
+                .name("Location1")
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .id(2L)
+                .name("Location2")
+                .humans(new ArrayList<>())
+                .build();
+        var human1 = Human.builder()
+                .name("Name1")
+                .healthStatus(HealthStatus.ASYMPTOMATIC)
+                .location(location1)
+                .viruses(new ArrayList<>())
+                .build();
+        var human2 = Human.builder()
+                .name("Name2")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location2)
+                .viruses(new ArrayList<>())
+                .build();
+        var humanList = Arrays.asList(human1, human2);
+        when(humanRepository.findAll()).thenReturn(humanList);
+
+        assertEquals(humanList, humanService.getAll());
     }
 
     @Test
-    public void create_HumanCreateDto() {
-        var humanCreateDto = new HumanCreateDto("John", HealthStatus.HEALTHY, 1L);
-        var location = new Location();
-        Mockito.when(locationService.getById(humanCreateDto.locationId())).thenReturn(location);
-        humanService.create(humanCreateDto);
-        Mockito.verify(locationService, Mockito.times(1))
-                .getById(humanCreateDto.locationId());
-        Mockito.verify(humanRepository, Mockito.times(1))
-                .saveAndFlush(Mockito.any(Human.class));
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .remove(Location.class, humanCreateDto.locationId());
+    public void getAll_shouldReturnEmptyList_whenEntitiesDoNotExist() {
+        when(humanRepository.findAll()).thenReturn(Collections.emptyList());
+        assertEquals(Collections.emptyList(), humanService.getAll());
     }
 
     @Test
-    public void create_Human() {
-        Human human = new Human();
-        human.setLocation(new Location());
+    public void create_shouldCreateEntity() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var humanCreateDto = HumanCreateDto.builder()
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .locationId(location.getId())
+                .build();
+        var human = Human.builder()
+                .name(humanCreateDto.name())
+                .healthStatus(humanCreateDto.healthStatus())
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        when(locationService.getById(humanCreateDto.locationId())).thenReturn(location);
+
+        assertEquals(human, humanService.create(humanCreateDto));
+        verify(cacheManager, times(1)).remove(Location.class, humanCreateDto.locationId());
+    }
+
+    @Test
+    public void create() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+
         humanService.create(human);
-        Mockito.verify(humanRepository, Mockito.times(1))
-                .save(Mockito.any(Human.class));
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .remove(Location.class, human.getLocation().getId());
+
+        verify(humanRepository, times(1)).save(human);
+        verify(cacheManager, times(1)).remove(Location.class, location.getId());
     }
 
     @Test
-    public void createAll() {
-        var humans = new ArrayList<Human>();
-        Human human1 = new Human();
-        human1.setLocation(new Location());
-        Human human2 = new Human();
-        human2.setLocation(new Location());
-        humans.add(human1);
-        humans.add(human2);
-        humanService.createAll(humans);
-        Mockito.verify(humanRepository, Mockito.times(1)).saveAll(humans);
-        Mockito.verify(cacheManager, Mockito.times(2))
-                .remove(Mockito.eq(Location.class), Mockito.anyLong());
+    public void createAll_shouldCreateEntities() {
+        var location1 = Location.builder()
+                .id(1L)
+                .name("Location1")
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .id(2L)
+                .name("Location2")
+                .humans(new ArrayList<>())
+                .build();
+        var human1 = Human.builder()
+                .name("Name1")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location1)
+                .viruses(new ArrayList<>())
+                .build();
+        var human2 = Human.builder()
+                .name("Name2")
+                .healthStatus(HealthStatus.ASYMPTOMATIC)
+                .location(location2)
+                .viruses(new ArrayList<>())
+                .build();
+        var humanList = Arrays.asList(human1, human2);
+
+        humanService.createAll(humanList);
+
+        verify(humanRepository, times(1)).saveAll(humanList);
+        verify(cacheManager, times(1)).remove(Location.class, location1.getId());
+        verify(cacheManager, times(1)).remove(Location.class, location2.getId());
     }
 
     @Test
-    public void createSeveral() {
-        var humanCreateDtoList = List.of(
-                new HumanCreateDto("John", HealthStatus.HEALTHY, 1L),
-                new HumanCreateDto("Jane", HealthStatus.INFECTED, 2L)
-        );
-        var location1 = new Location();
-        var location2 = new Location();
-        Mockito.when(locationService.getById(1L)).thenReturn(location1);
-        Mockito.when(locationService.getById(2L)).thenReturn(location2);
+    public void createSeveral_shouldCreateEntities() {
+        var location1 = Location.builder()
+                .id(1L)
+                .name("Location1")
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .id(2L)
+                .name("Location2")
+                .humans(new ArrayList<>())
+                .build();
+        var humanCreateDto1 = HumanCreateDto.builder()
+                .name("Name1")
+                .healthStatus(HealthStatus.HEALTHY)
+                .locationId(location1.getId())
+                .build();
+        var humanCreateDto2 = HumanCreateDto.builder()
+                .name("Name2")
+                .healthStatus(HealthStatus.INFECTED)
+                .locationId(location2.getId())
+                .build();
+        var human1 = Human.builder()
+                .name(humanCreateDto1.name())
+                .healthStatus(humanCreateDto1.healthStatus())
+                .location(location1)
+                .viruses(new ArrayList<>())
+                .build();
+        var human2 = Human.builder()
+                .name(humanCreateDto2.name())
+                .healthStatus(humanCreateDto2.healthStatus())
+                .location(location2)
+                .viruses(new ArrayList<>())
+                .build();
+        var humanCreateDtoList = Arrays.asList(humanCreateDto1, humanCreateDto2);
+        var humanList = Arrays.asList(human1, human2);
+        when(locationService.getById(humanCreateDto1.locationId())).thenReturn(location1);
+        when(locationService.getById(humanCreateDto2.locationId())).thenReturn(location2);
+
         humanService.createSeveral(humanCreateDtoList);
-        Mockito.verify(locationService, Mockito.times(1)).getById(1L);
-        Mockito.verify(locationService, Mockito.times(1)).getById(2L);
-        Mockito.verify(humanRepository, Mockito.times(1)).saveAllAndFlush(Mockito.anyList());
-        Mockito.verify(cacheManager, Mockito.times(1)).remove(Location.class, 1L);
-        Mockito.verify(cacheManager, Mockito.times(1)).remove(Location.class, 2L);
+
+        verify(humanRepository, times(1)).saveAllAndFlush(humanList);
+        verify(cacheManager, times(1)).remove(Location.class, location1.getId());
+        verify(cacheManager, times(1)).remove(Location.class, location2.getId());
     }
 
     @Test
-    public void update() {
-        var id = 1L;
-        var locationId = 2L;
-        var humanUpdateDto = new HumanUpdateDto(id, "John", HealthStatus.HEALTHY, locationId);
-        var human = new Human();
-        human.setId(id);
-        var oldLocation = new Location();
-        oldLocation.setId(locationId);
-        human.setLocation(oldLocation);
-        var newLocation = new Location();
-        Mockito.when(humanRepository.findById(id)).thenReturn(java.util.Optional.of(human));
-        Mockito.when(locationService.getById(locationId)).thenReturn(newLocation);
-        humanService.update(humanUpdateDto);
-        Mockito.verify(humanRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(locationService, Mockito.times(1)).getById(locationId);
-        Mockito.verify(humanRepository, Mockito.times(1)).saveAndFlush(human);
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .remove(Location.class, oldLocation.getId());
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .remove(Location.class, newLocation.getId());
-        assertEquals("John", human.getName());
-        assertEquals(HealthStatus.HEALTHY, human.getHealthStatus());
-        assertEquals(newLocation, human.getLocation());
+    public void update_shouldUpdateEntity_whenEntityExists() {
+        var location1 = Location.builder()
+                .id(1L)
+                .name("Location1")
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .id(2L)
+                .name("Location2")
+                .humans(new ArrayList<>())
+                .build();
+        var humanUpdateDto = HumanUpdateDto.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .locationId(location2.getId())
+                .build();
+        var humanOld = Human.builder()
+                .id(humanUpdateDto.id())
+                .name(humanUpdateDto.name())
+                .healthStatus(HealthStatus.ASYMPTOMATIC)
+                .location(location1)
+                .viruses(new ArrayList<>())
+                .build();
+        var humanNew = Human.builder()
+                .id(humanUpdateDto.id())
+                .name(humanUpdateDto.name())
+                .healthStatus(humanUpdateDto.healthStatus())
+                .location(location2)
+                .viruses(new ArrayList<>())
+                .build();
+        when(humanRepository.findById(humanUpdateDto.id())).thenReturn(Optional.of(humanOld));
+        when(locationService.getById(location2.getId())).thenReturn(location2);
+
+        assertEquals(humanNew, humanService.update(humanUpdateDto));
+        verify(cacheManager, times(1)).remove(Location.class, location1.getId());
+        verify(cacheManager, times(1)).remove(Location.class, humanNew.getLocation().getId());
     }
 
     @Test
-    public void testDeleteById() {
-        var id = 1L;
-        var locationId = 2L;
-        var human = new Human();
-        human.setId(id);
-        var location = new Location();
-        location.setId(locationId);
-        human.setLocation(location);
-        Mockito.when(humanRepository.findById(id)).thenReturn(java.util.Optional.of(human));
-        humanService.deleteById(id);
-        Mockito.verify(humanRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(humanRepository, Mockito.times(1)).deleteById(id);
-        Mockito.verify(cacheManager, Mockito.times(1)).remove(Location.class, locationId);
+    public void deleteById_shouldDeleteEntity_whenEntityExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        when(humanRepository.findById(human.getId())).thenReturn(Optional.of(human));
+
+        humanService.deleteById(human.getId());
+
+        verify(humanRepository, times(1)).deleteById(human.getId());
+        verify(cacheManager, times(1)).remove(Location.class, location.getId());
     }
 }

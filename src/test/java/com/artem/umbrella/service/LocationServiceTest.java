@@ -1,9 +1,11 @@
 package com.artem.umbrella.service;
 
 import com.artem.umbrella.cache.CacheManager;
+import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
 import com.artem.umbrella.entity.Location;
+import com.artem.umbrella.enumeration.HealthStatus;
 import com.artem.umbrella.exception.EntityExistsException;
 import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.repository.LocationRepository;
@@ -13,14 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.OngoingStubbing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.lang.reflect.Array;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LocationServiceTest {
@@ -35,168 +37,195 @@ class LocationServiceTest {
     private LocationService locationService;
 
     @Test
-    void getById_LocationNotFound() {
-        var id = 1L;
-        Mockito.when(cacheManager.get(Location.class, id)).thenReturn(null);
-        Mockito.when(locationRepository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> locationService.getById(id));
-        Mockito.verify(cacheManager, Mockito.times(1)).get(Location.class, id);
-        Mockito.verify(locationRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(cacheManager, Mockito.never()).put(Mockito.eq(Location.class), Mockito.eq(id), Mockito.any());
+    void getById_shouldThrowEntityNotFoundException_whenEntityNotFound() {
+        when(cacheManager.get(Location.class, 1L)).thenReturn(null);
+        when(locationRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> locationService.getById(1L));
     }
 
     @Test
-    void getById_LocationNotInCache() {
-        var id = 1L;
-        var location = new Location();
-        Mockito.when(cacheManager.get(Location.class, id)).thenReturn(null);
-        Mockito.when(locationRepository.findById(id)).thenReturn(Optional.of(location));
-        Location result = locationService.getById(id);
-        assertEquals(location, result);
-        Mockito.verify(cacheManager, Mockito.times(1)).get(Location.class, id);
-        Mockito.verify(locationRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .put(Mockito.eq(Location.class), Mockito.eq(id), Mockito.any(Location.class));
+    void getById_shouldReturnLocation_whenLocationNotInCache() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        when(cacheManager.get(Location.class, location.getId())).thenReturn(null);
+        when(locationRepository.findById(location.getId())).thenReturn(Optional.of(location));
+
+        assertEquals(location, locationService.getById(location.getId()));
+
+        verify(cacheManager, times(1)).put(Location.class, location.getId(), location);
     }
 
     @Test
-    void getById_LocationInCache() {
-        var id = 1L;
-        var location = new Location();
-        Mockito.when(cacheManager.get(Location.class, id)).thenReturn(location);
-        Location result = locationService.getById(id);
-        assertEquals(location, result);
-        Mockito.verify(cacheManager, Mockito.times(1)).get(Location.class, id);
-        Mockito.verify(locationRepository, Mockito.never()).findById(id);
-        Mockito.verify(cacheManager, Mockito.never())
-                .put(Mockito.eq(Location.class), Mockito.eq(id), Mockito.any(Location.class));
+    void getById_shouldReturnLocation_whenLocationInCache() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        when(cacheManager.get(Location.class, location.getId())).thenReturn(location);
+
+        assertEquals(location, locationService.getById(location.getId()));
     }
 
     @Test
-    void getAll() {
-        var locations = Collections.<Location>emptyList();
-        Mockito.when(locationRepository.findAll()).thenReturn(locations);
-        var result = locationService.getAll();
-        assertEquals(locations, result);
-        Mockito.verify(locationRepository, Mockito.times(1)).findAll();
+    void getAll_shouldReturnEntities_whenEntitiesExist() {
+        var location1 = Location.builder()
+                .id(1L)
+                .name("Location1")
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .id(2L)
+                .name("Location2")
+                .humans(new ArrayList<>())
+                .build();
+        var locationList = Arrays.asList(location1, location2);
+        when(locationRepository.findAll()).thenReturn(locationList);
+
+        assertEquals(locationList, locationService.getAll());
     }
 
     @Test
-    public void create_LocationDoesNotExist() {
-        var locationCreateDto = new LocationCreateDto("New Location");
-        Mockito.when(locationRepository.existsByName(locationCreateDto.name())).thenReturn(false);
-        var location = Location.builder().name(locationCreateDto.name()).humans(new ArrayList<>()).build();
-        Mockito.when(locationRepository.saveAndFlush(Mockito.any(Location.class))).thenReturn(location);
-        var result = locationService.create(locationCreateDto);
-        assertEquals(location, result);
-        Mockito.verify(locationRepository, Mockito.times(1))
-                .existsByName(locationCreateDto.name());
-        Mockito.verify(locationRepository, Mockito.times(1))
-                .saveAndFlush(Mockito.any(Location.class));
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .put(Mockito.eq(Location.class), Mockito.any(Long.class), Mockito.eq(location));
+    public void getAll_shouldReturnEmptyList_whenEntitiesDoNotExist() {
+        when(locationRepository.findAll()).thenReturn(Collections.emptyList());
+        assertEquals(Collections.emptyList(), locationService.getAll());
     }
 
     @Test
-    public void create_LocationExists() {
-        var locationCreateDto = new LocationCreateDto("Existing Location");
-        Mockito.when(locationRepository.existsByName(locationCreateDto.name())).thenReturn(true);
-        assertThrows(EntityExistsException.class, () -> {
-            locationService.create(locationCreateDto);
-        });
-        Mockito.verify(locationRepository, Mockito.times(1))
-                .existsByName(locationCreateDto.name());
-        Mockito.verify(locationRepository, Mockito.never())
-                .saveAndFlush(Mockito.any(Location.class));
-        Mockito.verify(cacheManager, Mockito.never())
-                .put(Mockito.eq(Location.class), Mockito.any(Long.class), Mockito.any(Location.class));
+    public void create_shouldCreateEntity_whenEntitiesDoNotExist() {
+        var locationCreateDto = LocationCreateDto.builder()
+                .name("locationCreateDto")
+                .build();
+        var location = Location.builder()
+                .name(locationCreateDto.name())
+                .humans(new ArrayList<>())
+                .build();
+        when(locationRepository.existsByName(locationCreateDto.name())).thenReturn(false);
+
+        assertEquals(location, locationService.create(locationCreateDto));
+
+        verify(locationRepository, times(1)).saveAndFlush(location);
+        verify(cacheManager, times(1)).put(Location.class, location.getId(), location);
     }
 
     @Test
-    public void createSeveral_LocationsDoNotExist() {
-        var locationCreateDtoList = List.of(
-                new LocationCreateDto("Location1"),
-                new LocationCreateDto("Location2")
-        );
-        Mockito.when(locationRepository.existsByNameIn(List.of("Location1", "Location2"))).thenReturn(false);
-        var locations = locationCreateDtoList.stream()
-                .map(dto -> Location.builder().name(dto.name()).humans(new ArrayList<>()).build())
-                .toList();
-        Mockito.when(locationRepository.saveAllAndFlush(Mockito.anyList())).thenReturn(locations);
-        var result = locationService.createSeveral(locationCreateDtoList);
-        assertEquals(locations, result);
-        Mockito.verify(locationRepository, Mockito.times(1))
-                .existsByNameIn(List.of("Location1", "Location2"));
-        Mockito.verify(locationRepository, Mockito.times(1)).saveAllAndFlush(Mockito.anyList());
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .put(Mockito.eq(Location.class), Mockito.any(Long.class), Mockito.any(Location.class));
+    public void create_shouldThrowEntityExistsException_whenEntitiesExist() {
+        var locationCreateDto = LocationCreateDto.builder()
+                .name("locationCreateDto")
+                .build();
+        var location = Location.builder()
+                .name(locationCreateDto.name())
+                .humans(new ArrayList<>())
+                .build();
+        when(locationRepository.existsByName(locationCreateDto.name())).thenReturn(true);
+
+        assertThrows(EntityExistsException.class, () -> locationService.create(locationCreateDto));
     }
 
     @Test
-    public void createSeveral_LocationExists() {
-        var locationCreateDtoList = List.of(
-                new LocationCreateDto("Location1"),
-                new LocationCreateDto("Location3")
-        );
-        Mockito.when(locationRepository.existsByNameIn(List.of("Location1", "Location2"))).thenReturn(true);
-        assertThrows(EntityExistsException.class, () -> {
-            locationService.createSeveral(locationCreateDtoList);
-        });
-        Mockito.verify(locationRepository, Mockito.times(1))
-                .existsByNameIn(List.of("Location1", "Location2"));
-        Mockito.verify(locationRepository, Mockito.never()).saveAllAndFlush(Mockito.anyList());
-        Mockito.verify(cacheManager, Mockito.never())
-                .put(Mockito.eq(Location.class), Mockito.any(Long.class), Mockito.any(Location.class));
+    public void createSeveral_shouldCreateEntities_whenEntitiesDoNotExist() {
+        var locationCreateDto1 = LocationCreateDto.builder()
+                .name("locationCreateDto1")
+                .build();
+        var locationCreateDto2 = LocationCreateDto.builder()
+                .name("locationCreateDto2")
+                .build();
+        var location1 = Location.builder()
+                .name(locationCreateDto1.name())
+                .humans(new ArrayList<>())
+                .build();
+        var location2 = Location.builder()
+                .name(locationCreateDto2.name())
+                .humans(new ArrayList<>())
+                .build();
+        var locationCreateDtoList = Arrays.asList(locationCreateDto1, locationCreateDto2);
+        var locationList = Arrays.asList(location1, location2);
+        when(locationRepository.existsByNameIn(locationCreateDtoList.stream()
+                .map(LocationCreateDto::name).toList())).thenReturn(false);
+
+        assertEquals(locationList, locationService.createSeveral(locationCreateDtoList));
+
+        verify(locationRepository, times(1)).saveAllAndFlush(locationList);
+        verify(cacheManager, times(1)).put(Location.class, location1.getId(), location1);
+        verify(cacheManager, times(1)).put(Location.class, location2.getId(), location2);
     }
 
     @Test
-    public void update_LocationExists() {
-        var id = 1L;
-        var locationUpdateDto = new LocationUpdateDto(id, "Updated Name");
-        var existingLocation = new Location();
-        Mockito.when(locationRepository.findById(id)).thenReturn(Optional.of(existingLocation));
-        var result = locationService.update(locationUpdateDto);
-        assertEquals("Updated Name", result.getName());
-        Mockito.verify(locationRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(locationRepository, Mockito.times(1)).save(existingLocation);
-        Mockito.verify(cacheManager, Mockito.times(1))
-                .update(Mockito.eq(Location.class), Mockito.eq(id), Mockito.eq(existingLocation));
+    public void createSeveral_shouldThrowEntityExistsException_whenEntitiesExist() {
+        var locationCreateDto1 = LocationCreateDto.builder()
+                .name("locationCreateDto1")
+                .build();
+        var locationCreateDto2 = LocationCreateDto.builder()
+                .name("locationCreateDto2")
+                .build();
+        var locationCreateDtoList = Arrays.asList(locationCreateDto1, locationCreateDto2);
+        when(locationRepository.existsByNameIn(locationCreateDtoList.stream()
+                .map(LocationCreateDto::name).toList())).thenReturn(true);
+
+        assertThrows(EntityExistsException.class, () -> locationService.createSeveral(locationCreateDtoList));
     }
 
     @Test
-    public void update_LocationNotFound() {
-        var id = 1L;
-        var locationUpdateDto = new LocationUpdateDto(id, "Updated Name");
-        Mockito.when(locationRepository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> {
-            locationService.update(locationUpdateDto);
-        });
-        Mockito.verify(locationRepository, Mockito.times(1)).findById(id);
-        Mockito.verify(locationRepository, Mockito.never()).save(Mockito.any(Location.class));
-        Mockito.verify(cacheManager, Mockito.never())
-                .update(Mockito.any(Class.class), Mockito.any(Long.class), Mockito.any(Location.class));
+    public void update_shouldUpdateEntity_whenEntityExists() {
+        var locationUpdateDto = LocationUpdateDto.builder()
+                .id(1L)
+                .name("locationUpdateDto")
+                .build();
+        var locationOld = Location.builder()
+                .id(locationUpdateDto.id())
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var locationNew = Location.builder()
+                .id(locationUpdateDto.id())
+                .name(locationUpdateDto.name())
+                .humans(new ArrayList<>())
+                .build();
+        when(locationRepository.findById(locationUpdateDto.id())).thenReturn(Optional.of(locationOld));
+        when(locationRepository.save(locationNew)).thenReturn(locationNew);
+
+        assertEquals(locationNew, locationService.update(locationUpdateDto));
+
+        verify(cacheManager, times(1)).update(Location.class, locationNew.getId(), locationNew);
     }
 
     @Test
-    public void deleteById_LocationExists() {
-        var id = 1L;
-        Mockito.when(locationRepository.existsById(id)).thenReturn(true);
-        locationService.deleteById(id);
-        Mockito.verify(locationRepository, Mockito.times(1)).existsById(id);
-        Mockito.verify(cacheManager, Mockito.times(1)).remove(Location.class, id);
-        Mockito.verify(locationRepository, Mockito.times(1)).deleteById(id);
+    public void update_shouldThrowEntityNotFoundException_whenEntityNotFound() {
+        var locationUpdateDto = LocationUpdateDto.builder()
+                .id(1L)
+                .name("locationUpdateDto")
+                .build();
+        when(locationRepository.findById(locationUpdateDto.id())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> locationService.update(locationUpdateDto));
     }
 
     @Test
-    public void deleteById_LocationNotFound() {
-        var id = 1L;
-        Mockito.when(locationRepository.existsById(id)).thenReturn(false);
-        assertThrows(EntityNotFoundException.class, () -> {
-            locationService.deleteById(id);
-        });
-        Mockito.verify(locationRepository, Mockito.times(1)).existsById(id);
-        Mockito.verify(cacheManager, Mockito.never()).remove(Mockito.any(Class.class), Mockito.any(Long.class));
-        Mockito.verify(locationRepository, Mockito.never()).deleteById(id);
+    public void deleteById_shouldDeleteEntity_whenEntityExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        when(locationRepository.findById(location.getId())).thenReturn(Optional.of(location));
+
+        locationService.deleteById(location.getId());
+
+        verify(locationRepository, times(1)).deleteById(location.getId());
+        verify(cacheManager, times(1)).remove(Location.class, location.getId());
     }
 
+    @Test
+    public void deleteById_shouldThrowEntityNotFoundException_whenEntityNotFound() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        when(locationRepository.findById(location.getId())).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> locationService.deleteById(location.getId()));
+    }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 @Entity
 @Builder
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "human")

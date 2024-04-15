@@ -4,7 +4,9 @@ import com.artem.umbrella.enumeration.HealthStatus;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
+@Builder
 public record HumanUpdateDto(
 
         @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "id must be a integer")

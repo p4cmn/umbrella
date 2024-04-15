@@ -3,7 +3,9 @@ package com.artem.umbrella.dto;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
+@Builder
 public record LocationUpdateDto(
 
         @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "id must be a integer")

@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
+@Builder
 public record HumanCreateDto(
 
         @NotBlank(message = "Name must not be blank")
