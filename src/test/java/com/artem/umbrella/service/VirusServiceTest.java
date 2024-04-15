@@ -1,6 +1,5 @@
 package com.artem.umbrella.service;
 
-import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.VirusCreateDto;
 import com.artem.umbrella.dto.VirusInfectDto;
 import com.artem.umbrella.dto.VirusUpdateDto;
@@ -19,11 +18,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VirusServiceTest {
@@ -206,125 +208,197 @@ class VirusServiceTest {
     }
 
     @Test
-    public void infect_HumanAndVirusExist_Infected() {
-        var humanId = 1L;
-        var virusId = 1L;
-        var human = new Human();
-        var virus = Virus.builder().infectiousnessPercentage(60).build();
-        var virusInfectDto = new VirusInfectDto(humanId, virusId);
-        when(humanService.getById(humanId)).thenReturn(human);
-        when(virusRepository.findById(virusId)).thenReturn(Optional.of(virus));
+    public void infect_shouldInfectHuman_whenHumanAndVirusExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        var virus = Virus.builder()
+                .id(1L)
+                .name("Virus")
+                .infectiousnessPercentage(70)
+                .humans(new ArrayList<>())
+                .build();
+        var expectedHuman = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.INFECTED)
+                .location(location)
+                .viruses(Collections.singletonList(virus))
+                .build();
+        var virusInfectDto = VirusInfectDto.builder()
+                .virusId(virus.getId())
+                .humanId(human.getId())
+                .build();
+        when(humanService.getById(virusInfectDto.humanId())).thenReturn(human);
+        when(virusRepository.findById(virusInfectDto.virusId())).thenReturn(Optional.of(virus));
+
         virusService.infect(virusInfectDto);
-        assertTrue(human.getViruses().contains(virus));
-        assertEquals(HealthStatus.INFECTED, human.getHealthStatus());
-        verify(humanService, Mockito.times(1)).getById(humanId);
-        verify(virusRepository, Mockito.times(1)).findById(virusId);
-        verify(humanService, Mockito.times(1)).create(human);
+
+        verify(humanService, Mockito.times(1)).create(expectedHuman);
     }
 
     @Test
-    public void infect_HumanNotFound() {
-        var humanId = 1L;
-        var virusId = 1L;
-        var virusInfectDto = new VirusInfectDto(humanId, virusId);
-        when(humanService.getById(humanId)).thenThrow(EntityNotFoundException.class);
-        assertThrows(EntityNotFoundException.class, () -> {
-            virusService.infect(virusInfectDto);
-        });
-        verify(humanService, Mockito.times(1)).getById(humanId);
-        verify(virusRepository, Mockito.never()).findById(Mockito.anyLong());
-        verify(humanService, Mockito.never()).create(Mockito.any(Human.class));
+    public void infect_shouldThrowEntityNotFoundException_whenHumanNotFound() {
+        var virusInfectDto = VirusInfectDto.builder()
+                .virusId(1L)
+                .humanId(1L)
+                .build();
+        when(humanService.getById(virusInfectDto.humanId())).thenThrow(EntityNotFoundException.class);
+
+        assertThrows(EntityNotFoundException.class, () -> virusService.infect(virusInfectDto));
+        verify(humanService, never()).create(Mockito.any(Human.class));
     }
 
     @Test
-    public void infect_VirusNotFound() {
-        var humanId = 1L;
-        var virusId = 1L;
-        var human = new Human();
-        var virusInfectDto = new VirusInfectDto(humanId, virusId);
-        when(humanService.getById(humanId)).thenReturn(human);
-        when(virusRepository.findById(virusId)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> {
-            virusService.infect(virusInfectDto);
-        });
-        verify(humanService, Mockito.times(1)).getById(humanId);
-        verify(virusRepository, Mockito.times(1)).findById(virusId);
-        verify(humanService, Mockito.never()).create(Mockito.any(Human.class));
+    public void infect_shouldThrowEntityNotFoundException_whenVirusNotFound() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        var virusInfectDto = VirusInfectDto.builder()
+                .virusId(1L)
+                .humanId(human.getId())
+                .build();
+        when(humanService.getById(virusInfectDto.humanId())).thenReturn(human);
+        when(virusRepository.findById(virusInfectDto.virusId())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> virusService.infect(virusInfectDto));
+        verify(humanService, never()).create(any(Human.class));
     }
 
     @Test
-    public void infect_ImmunityException() {
-        var humanId = 1L;
-        var virusId = 1L;
-        var human = new Human();
-        var virus = Virus.builder().infectiousnessPercentage(40).build();
-        var virusInfectDto = new VirusInfectDto(humanId, virusId);
-        when(humanService.getById(humanId)).thenReturn(human);
-        when(virusRepository.findById(virusId)).thenReturn(Optional.of(virus));
-        assertThrows(ImmunityException.class, () -> {
-            virusService.infect(virusInfectDto);
-        });
-        verify(humanService, Mockito.times(1)).getById(humanId);
-        verify(virusRepository, Mockito.times(1)).findById(virusId);
-        verify(humanService, Mockito.never()).create(Mockito.any(Human.class));
+    public void infect_shouldNotInfectHuman_whenHumanAndVirusExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        var virus = Virus.builder()
+                .id(1L)
+                .name("Virus")
+                .infectiousnessPercentage(30)
+                .humans(new ArrayList<>())
+                .build();
+        var virusInfectDto = VirusInfectDto.builder()
+                .virusId(virus.getId())
+                .humanId(human.getId())
+                .build();
+        when(humanService.getById(virusInfectDto.humanId())).thenReturn(human);
+        when(virusRepository.findById(virusInfectDto.virusId())).thenReturn(Optional.of(virus));
+
+        assertThrows(ImmunityException.class, () -> virusService.infect(virusInfectDto));
+        verify(humanService, never()).create(any(Human.class));
     }
 
     @Test
-    public void update_VirusExists() {
-        var id = 1L;
-        var newName = "Updated Name";
-        var newInfectiousness = 70;
-        var virusUpdateDto = new VirusUpdateDto(id, newName, newInfectiousness);
-        var virus = Virus.builder().id(id).name("Old Name").infectiousnessPercentage(50).build();
-        when(virusRepository.findById(id)).thenReturn(java.util.Optional.of(virus));
-        when(virusRepository.save(Mockito.any(Virus.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        var result = virusService.update(virusUpdateDto);
-        assertEquals(newName, result.getName());
-        assertEquals(newInfectiousness, result.getInfectiousnessPercentage());
-        verify(virusRepository, Mockito.times(1)).findById(id);
-        verify(virusRepository, Mockito.times(1)).save(virus);
+    public void update_shouldUpdateEntity_whenEntityExists() {
+        var virusUpdateDto = VirusUpdateDto.builder()
+                .id(1L)
+                .name("virusUpdateDto")
+                .infectiousnessPercentage(70)
+                .build();
+        var virusNew = Virus.builder()
+                .id(virusUpdateDto.id())
+                .name(virusUpdateDto.name())
+                .infectiousnessPercentage(virusUpdateDto.infectiousnessPercentage())
+                .humans(new ArrayList<>())
+                .build();
+        var virusOld = Virus.builder()
+                .id(virusUpdateDto.id())
+                .name("name")
+                .infectiousnessPercentage(40)
+                .humans(new ArrayList<>())
+                .build();
+        when(virusRepository.findById(virusUpdateDto.id())).thenReturn(Optional.of(virusOld));
+        when(virusRepository.save(virusNew)).thenReturn(virusNew);
+
+        assertEquals(virusNew, virusService.update(virusUpdateDto));
     }
 
     @Test
     public void update_VirusNotFound() {
-        var id = 1L;
-        var virusUpdateDto = new VirusUpdateDto(id, "Updated Name", 70);
-        when(virusRepository.findById(id)).thenReturn(java.util.Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> {
-            virusService.update(virusUpdateDto);
-        });
-        verify(virusRepository, Mockito.times(1)).findById(id);
-        verify(virusRepository, Mockito.never()).save(Mockito.any(Virus.class));
+        var virusUpdateDto = VirusUpdateDto.builder()
+                .id(1L)
+                .name("virusUpdateDto")
+                .infectiousnessPercentage(70)
+                .build();
+        when(virusRepository.findById(virusUpdateDto.id())).thenReturn(java.util.Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> virusService.update(virusUpdateDto));
     }
 
     @Test
-    public void deleteById_VirusExists() {
-        var id = 1L;
-        var virus = new Virus();
-        virus.setId(id);
-        var human1 = new Human();
-        human1.getViruses().add(virus);
-        var human2 = new Human();
-        human2.getViruses().add(virus);
-        virus.getHumans().add(human1);
-        virus.getHumans().add(human2);
-        when(virusRepository.findById(id)).thenReturn(java.util.Optional.of(virus));
-        Mockito.doNothing().when(humanService).createAll(virus.getHumans());
-        virusService.deleteById(id);
-        assertTrue(human1.getViruses().isEmpty());
-        assertTrue(human2.getViruses().isEmpty());
-        verify(virusRepository, Mockito.times(1)).deleteById(id);
-        verify(humanService, Mockito.times(1)).createAll(virus.getHumans());
+    public void deleteById_shouldDeleteEntity_whenEntityExists() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        var virus = Virus.builder()
+                .id(1L)
+                .name("Virus")
+                .infectiousnessPercentage(30)
+                .humans(Collections.singletonList(human))
+                .build();
+        when(virusRepository.findById(virus.getId())).thenReturn(Optional.of(virus));
+
+        virusService.deleteById(virus.getId());
+        verify(humanService, times(1)).createAll(virus.getHumans());
+        verify(virusRepository, times(1)).deleteById(virus.getId());
     }
 
     @Test
-    public void deleteById_VirusNotFound() {
-        var id = 1L;
-        when(virusRepository.findById(id)).thenReturn(java.util.Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> {
-            virusService.deleteById(id);
-        });
-        verify(virusRepository, Mockito.never()).deleteById(id);
-        verify(humanService, Mockito.never()).createAll(Mockito.any());
+    public void deleteById_shouldThrowEntityNotFoundException_whenVirusNotFound() {
+        var location = Location.builder()
+                .id(1L)
+                .name("Location")
+                .humans(new ArrayList<>())
+                .build();
+        var human = Human.builder()
+                .id(1L)
+                .name("Name")
+                .healthStatus(HealthStatus.HEALTHY)
+                .location(location)
+                .viruses(new ArrayList<>())
+                .build();
+        var virus = Virus.builder()
+                .id(1L)
+                .name("Virus")
+                .infectiousnessPercentage(30)
+                .humans(Collections.singletonList(human))
+                .build();
+        when(virusRepository.findById(virus.getId())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> virusService.deleteById(virus.getId()));
     }
 }

@@ -1,11 +1,9 @@
 package com.artem.umbrella.service;
 
 import com.artem.umbrella.cache.CacheManager;
-import com.artem.umbrella.dto.HumanCreateDto;
 import com.artem.umbrella.dto.LocationCreateDto;
 import com.artem.umbrella.dto.LocationUpdateDto;
 import com.artem.umbrella.entity.Location;
-import com.artem.umbrella.enumeration.HealthStatus;
 import com.artem.umbrella.exception.EntityExistsException;
 import com.artem.umbrella.exception.EntityNotFoundException;
 import com.artem.umbrella.repository.LocationRepository;
@@ -13,12 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.OngoingStubbing;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
