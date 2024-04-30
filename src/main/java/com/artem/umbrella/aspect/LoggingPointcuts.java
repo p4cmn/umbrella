@@ -8,6 +8,6 @@ public class LoggingPointcuts {
     }
 
     @Pointcut("execution(* com.artem.umbrella.service.*.*(..))")
-    public void allMethodsFromServices() {
+    public void allMethodsFromServicesWithoutCounterService() {
     }
 }

@@ -1,5 +1,7 @@
 package com.artem.umbrella.aspect;
 
+import com.artem.umbrella.service.RequestCounterService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -13,10 +15,13 @@ import java.util.Arrays;
 @Slf4j
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class LoggingAspect {
 
+    private final RequestCounterService counterService;
+
     @Before("com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromControllers() "
-            + "|| com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServices()")
+            + "|| com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServicesWithoutCounterService()")
     public void logSignatureOfCalledMethods(final JoinPoint joinPoint) {
         log.info("Method {}.{} with args: {} called",
                 joinPoint.getSignature().getDeclaringType(),
@@ -26,7 +31,7 @@ public class LoggingAspect {
     }
 
     @AfterReturning(value = "com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromControllers() "
-            + "|| com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServices()",
+            + "|| com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServicesWithoutCounterService()",
             returning = "result")
     public void logReturnValueOfExecutedMethods(final JoinPoint joinPoint, final Object result) {
         log.info("Method {}.{} with args: {} returned: {}",
@@ -37,7 +42,7 @@ public class LoggingAspect {
         );
     }
 
-    @AfterThrowing(value = "com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServices()",
+    @AfterThrowing(value = "com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServicesWithoutCounterService()",
             throwing = "exception")
     public void logExceptionOfInterruptedMethods(final JoinPoint joinPoint, final Throwable exception) {
         log.error("Method {}.{} with args: {} interrupted. Exception: {}",
