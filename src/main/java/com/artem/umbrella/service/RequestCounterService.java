@@ -7,11 +7,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RequestCounterService {
     private static final AtomicInteger counter = new AtomicInteger(0);
 
-    public static synchronized void increment() {
+    public static void increment() {
         counter.incrementAndGet();
     }
 
-    public static synchronized int get() {
+    public static int get() {
         return counter.get();
     }
 }

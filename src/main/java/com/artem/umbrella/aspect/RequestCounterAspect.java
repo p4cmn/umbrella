@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class RequestCounterAspect {
 
     @Before("com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromControllers()")
-    public void incrementCounter(final JoinPoint joinPoint) {
+    public synchronized void incrementCounter(final JoinPoint joinPoint) {
         RequestCounterService.increment();
         log.info("Increment counter from {}.{}. Counter is {}",
                 joinPoint.getSignature().getDeclaringType(),
