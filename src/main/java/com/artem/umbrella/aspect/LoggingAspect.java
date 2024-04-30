@@ -1,6 +1,5 @@
 package com.artem.umbrella.aspect;
 
-import com.artem.umbrella.service.RequestCounterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -17,8 +16,6 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class LoggingAspect {
-
-    private final RequestCounterService counterService;
 
     @Before("com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromControllers() "
             + "|| com.artem.umbrella.aspect.LoggingPointcuts.allMethodsFromServicesWithoutCounterService()")
