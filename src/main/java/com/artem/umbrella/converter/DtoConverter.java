@@ -10,13 +10,29 @@ import lombok.experimental.UtilityClass;
 public class DtoConverter {
 
     public HumanDto toHumanDto(final Human human) {
-        var viruses = human.getViruses().stream().map(Virus::getName).toList();
+        var humanVirusesDto = human.getViruses().stream()
+                .map(DtoConverter::toHumanVirusDto).toList();
         return HumanDto.builder()
                 .id(human.getId())
                 .name(human.getName())
                 .healthStatus(human.getHealthStatus())
-                .viruses(viruses)
-                .location(human.getLocation().getName())
+                .viruses(humanVirusesDto)
+                .location(toHumanLocationDto(human))
+                .build();
+    }
+
+    private HumanVirusDto toHumanVirusDto(Virus virus) {
+        return HumanVirusDto.builder()
+                .id(virus.getId())
+                .name(virus.getName())
+                .infectiousnessPercentage(virus.getInfectiousnessPercentage())
+                .build();
+    }
+
+    private HumanLocationDto toHumanLocationDto(final Human human) {
+        return HumanLocationDto.builder()
+                .id(human.getLocation().getId())
+                .name(human.getLocation().getName())
                 .build();
     }
 
@@ -53,18 +69,18 @@ public class DtoConverter {
                 .id(human.getId())
                 .name(human.getName())
                 .healthStatus(human.getHealthStatus())
-                .location(human.getLocation().getName())
+                .location(toHumanLocationDto(human))
                 .build();
     }
 
     private LocationHumanDto toLocationHumanDto(final Human human) {
-        var viruses = human.getViruses().stream()
-                .map(Virus::getName).toList();
+        var humanVirusesDto = human.getViruses().stream()
+                .map(DtoConverter::toHumanVirusDto).toList();
         return LocationHumanDto.builder()
                 .id(human.getId())
                 .name(human.getName())
                 .healthStatus(human.getHealthStatus())
-                .viruses(viruses)
+                .viruses(humanVirusesDto)
                 .build();
     }
 }

@@ -8,5 +8,5 @@ public record VirusHumanDto(
         Long id,
         String name,
         HealthStatus healthStatus,
-        String location) {
+        HumanLocationDto location) {
 }

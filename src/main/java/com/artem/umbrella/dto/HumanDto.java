@@ -10,6 +10,6 @@ public record HumanDto(
         Long id,
         String name,
         HealthStatus healthStatus,
-        List<String> viruses,
-        String location) {
+        List<HumanVirusDto> viruses,
+        HumanLocationDto location) {
 }

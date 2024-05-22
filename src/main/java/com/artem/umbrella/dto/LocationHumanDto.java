@@ -10,5 +10,5 @@ public record LocationHumanDto(
         Long id,
         String name,
         HealthStatus healthStatus,
-        List<String> viruses) {
+        List<HumanVirusDto> viruses) {
 }
