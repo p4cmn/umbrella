@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Validated
+@CrossOrigin
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/locations")

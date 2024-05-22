@@ -16,6 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Validated
+@CrossOrigin
 @RestController
 @RequestMapping("/humans")
 @RequiredArgsConstructor
