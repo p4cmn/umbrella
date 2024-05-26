@@ -28,3 +28,4 @@ jobs:
 
       - name: Trigger Render deploy hook
         run: curl ${{secrets.RENDER_DEPLOY_HOOK}}
+
