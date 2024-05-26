@@ -1,4 +1,4 @@
-name: Ender Deploy
+name: render-deploy-backend
 
 on:
   push:
