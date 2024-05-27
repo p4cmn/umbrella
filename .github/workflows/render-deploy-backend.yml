@@ -28,6 +28,7 @@ jobs:
           publish-atoms: false
 
       - name: Trigger Render deploy hook
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
 
 
